@@ -65,6 +65,8 @@
 
 #define RGBA(r,g,b,a) r/256.0, g/256.0, b/256.0, a
 
+#define RGBHEXCOLOR(rgb) RGBCOLOR( ((rgb >> 16) & 0xff) , ((rgb >> 8) & 0xff), (rgb & 0xff) )
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Style helpers
 
