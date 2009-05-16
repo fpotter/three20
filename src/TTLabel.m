@@ -21,6 +21,7 @@
   if (self = [super initWithFrame:frame]) {
     _text = nil;
     _font = nil;
+    self.userInteractionEnabled = NO;
   }
   return self;
 }
