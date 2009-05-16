@@ -213,15 +213,19 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 @interface TTLinearGradientFillStyle : TTStyle {
-  UIColor* _color1;
-  UIColor* _color2;
+  NSArray* _colors;
+  NSArray* _locations;
 }
 
-@property(nonatomic,retain) UIColor* color1;
-@property(nonatomic,retain) UIColor* color2;
+@property(nonatomic,retain) NSArray* colors;
+@property(nonatomic,retain) NSArray* locations;
+
 
 + (TTLinearGradientFillStyle*)styleWithColor1:(UIColor*)color1 color2:(UIColor*)color2
-                              next:(TTStyle*)next;
+                                         next:(TTStyle*)next;
+
++ (TTLinearGradientFillStyle*)styleWithColors:(NSArray*)colors locations:(NSArray*)locations
+                                         next:(TTStyle*)next;
 
 @end
 

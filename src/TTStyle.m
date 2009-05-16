@@ -58,10 +58,16 @@ static const NSInteger kDefaultLightSource = 125;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // private
 
-- (CGGradientRef)newGradientWithColors:(UIColor**)colors count:(int)count {
+- (CGGradientRef)newGradientWithColors:(NSArray*)colorsArray locations:(NSArray*)locationsArray {
+
+  int count = [colorsArray count];
+
   CGFloat* components = malloc(sizeof(CGFloat)*4*count);
+  CGFloat* locations = malloc(sizeof(CGFloat)*count);
+
   for (int i = 0; i < count; ++i) {
-    UIColor* color = colors[i];
+    UIColor* color = [colorsArray objectAtIndex:i];
+    NSNumber* location = (NSNumber*)[locationsArray objectAtIndex:i];
     size_t n = CGColorGetNumberOfComponents(color.CGColor);
     const CGFloat* rgba = CGColorGetComponents(color.CGColor);
     if (n == 2) {
@@ -75,12 +81,14 @@ static const NSInteger kDefaultLightSource = 125;
       components[i*4+2] = rgba[2];
       components[i*4+3] = rgba[3];
     }
+    locations[i] = [location floatValue];
   }
 
   CGContextRef context = UIGraphicsGetCurrentContext();
   CGColorSpaceRef space = CGBitmapContextGetColorSpace(context);
-  CGGradientRef gradient = CGGradientCreateWithColorComponents(space, components, nil, count);
+  CGGradientRef gradient = CGGradientCreateWithColorComponents(space, components, locations, count);
   free(components);
+  free(locations);
   return gradient;
 }
 
@@ -847,16 +855,23 @@ static const NSInteger kDefaultLightSource = 125;
 
 @implementation TTLinearGradientFillStyle
 
-@synthesize color1 = _color1, color2 = _color2;
+@synthesize colors = _colors, locations = _locations;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // class public
 
 + (TTLinearGradientFillStyle*)styleWithColor1:(UIColor*)color1 color2:(UIColor*)color2
                               next:(TTStyle*)next {
+  return [TTLinearGradientFillStyle styleWithColors:[NSArray arrayWithObjects:color1, color2, nil]
+                                          locations:[NSArray arrayWithObjects:[NSNumber numberWithFloat:0.0f], [NSNumber numberWithFloat:1.0f], nil]
+                                               next:next];
+}
+
++ (TTLinearGradientFillStyle*)styleWithColors:(NSArray*)colors locations:(NSArray*)locations
+                                         next:(TTStyle*)next {
   TTLinearGradientFillStyle* style = [[[self alloc] initWithNext:next] autorelease];
-  style.color1 = color1;
-  style.color2 = color2;
+  style.colors = colors;
+  style.locations = locations;
   return style;
 }
 
@@ -865,15 +880,15 @@ static const NSInteger kDefaultLightSource = 125;
 
 - (id)initWithNext:(TTStyle*)next {  
   if (self = [super initWithNext:next]) {
-    _color1 = nil;
-    _color2 = nil;
+    _locations = nil;
+    _colors = nil;
   }
   return self;
 }
 
 - (void)dealloc {
-  [_color1 release];
-  [_color2 release];
+  [_colors release];
+  [_locations release];
   [super dealloc];
 }
 
@@ -883,13 +898,12 @@ static const NSInteger kDefaultLightSource = 125;
 - (void)draw:(TTStyleContext*)context {
   CGContextRef ctx = UIGraphicsGetCurrentContext();
   CGRect rect = context.frame;
-  
+
   CGContextSaveGState(ctx);
   [context.shape addToPath:rect];
   CGContextClip(ctx);
 
-  UIColor* colors[] = {_color1, _color2};
-  CGGradientRef gradient = [self newGradientWithColors:colors count:2];
+  CGGradientRef gradient = [self newGradientWithColors:_colors locations:_locations];
   CGContextDrawLinearGradient(ctx, gradient, CGPointMake(rect.origin.x, rect.origin.y),
     CGPointMake(rect.origin.x, rect.origin.y+rect.size.height), kCGGradientDrawsAfterEndLocation);
   CGGradientRelease(gradient);
@@ -960,9 +974,10 @@ static const NSInteger kDefaultLightSource = 125;
   }
 //  //UIColor* lighter = [_color multiplyHue:1 saturation:0.5 value:1.35];
 //  //UIColor* darker = [_color multiplyHue:1 saturation:0.88 value:1.05];
-  UIColor* colors[] = {lighter, darker};
+
+  CGGradientRef gradient = [self newGradientWithColors:[NSArray arrayWithObjects:lighter, darker, nil]
+                                             locations:[NSArray arrayWithObjects:[NSNumber numberWithFloat:0.0], [NSNumber numberWithFloat:1.0], nil]];
   
-  CGGradientRef gradient = [self newGradientWithColors:colors count:2];
   CGContextDrawLinearGradient(ctx, gradient, CGPointMake(rect.origin.x, rect.origin.y),
     CGPointMake(rect.origin.x, rect.origin.y+rect.size.height*0.5),
     kCGGradientDrawsBeforeStartLocation);
