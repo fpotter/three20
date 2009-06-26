@@ -82,7 +82,14 @@ static const CGFloat kCancelHighlightThreshold = 4;
 }
 
 - (CGSize)sizeThatFits:(CGSize)size {
-  [self layoutIfNeeded];
+  // Our height is derived from our width...
+
+  // We only call layoutIfNeeded if something has really changed.  Otherwise
+  // we can get caught in an infinite layout loop.
+  if (self.width != size.width) {
+    self.width = size.width;
+    [self layoutIfNeeded];
+  }
   return CGSizeMake(_text.width + (_contentInset.left + _contentInset.right),
                     _text.height+ (_contentInset.top + _contentInset.bottom));
 }
