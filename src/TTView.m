@@ -53,13 +53,6 @@
   }
 }
 
-- (CGSize)sizeThatFits:(CGSize)size {
-  TTStyleContext* context = [[[TTStyleContext alloc] init] autorelease];
-  context.delegate = self;
-  context.font = nil;
-  return [_style addToSize:CGSizeZero context:context];
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // public
 
