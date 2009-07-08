@@ -1,7 +1,6 @@
 #import "Three20/TTTableView.h"
 #import "Three20/TTStyledNode.h"
 #import "Three20/TTStyledTextLabel.h"
-#import "Three20/TTNavigationCenter.h"
 #import "Three20/TTTableViewDelegate.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -33,16 +32,14 @@ static const CGFloat kCancelHighlightThreshold = 4;
     _highlightStartPoint = CGPointZero;
     _menuView = nil;
     _menuCell = nil;
-    
-    self.delaysContentTouches = NO;
   }
   return self;
 }
 
 - (void)dealloc {
-  [_highlightedLabel release];
-  [_menuView release];
-  [_menuCell release];
+  TT_RELEASE_MEMBER(_highlightedLabel);
+  TT_RELEASE_MEMBER(_menuView);
+  TT_RELEASE_MEMBER(_menuCell);
   [super dealloc];
 }
 
@@ -72,22 +69,6 @@ static const CGFloat kCancelHighlightThreshold = 4;
       if (![hit isKindOfClass:[UIControl class]]) {
         [self hideMenu:YES];
       }
-    }
-  }
-}
-
-- (void)touchesMoved:(NSSet*)touches withEvent:(UIEvent*)event {
-  [super touchesMoved:touches withEvent:event];
-
-  if (_highlightedLabel) {
-    UITouch* touch = [touches anyObject];
-    CGPoint newPoint = [touch locationInView:self];
-    CGFloat dx = newPoint.x - _highlightStartPoint.x;
-    CGFloat dy = newPoint.y - _highlightStartPoint.y;
-    CGFloat d = sqrt((dx*dx) + (dy+dy));
-    if (d > kCancelHighlightThreshold) {
-      _highlightedLabel.highlightedNode = nil;
-      self.highlightedLabel = nil;
     }
   }
 }
@@ -152,7 +133,7 @@ static const CGFloat kCancelHighlightThreshold = 4;
   // Move each content subview down, revealing the menu
   for (UIView* view in _menuCell.contentView.subviews) {
     if (view != _menuView) {
-      view.top += _menuCell.contentView.height;
+      view.left -= _menuCell.contentView.width;
     }
   }
   
@@ -172,7 +153,7 @@ static const CGFloat kCancelHighlightThreshold = 4;
 
     for (UIView* view in _menuCell.contentView.subviews) {
       if (view != _menuView) {
-        view.top -= _menuCell.contentView.height;
+        view.left += _menuCell.contentView.width;
       }
     }
 
@@ -182,10 +163,8 @@ static const CGFloat kCancelHighlightThreshold = 4;
       [_menuView removeFromSuperview];
     }
 
-    [_menuView release];
-    _menuView = nil;
-    [_menuCell release];
-    _menuCell = nil;
+    TT_RELEASE_MEMBER(_menuView);
+    TT_RELEASE_MEMBER(_menuCell);
   }
 }
 

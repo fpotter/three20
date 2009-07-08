@@ -8,30 +8,34 @@
 - (id)init {
   if (self = [super init]) {
     _sendTimer = nil;
-    _dataSource = nil;
+    
+    [[TTAppMap sharedMap] addURL:@"tt://compose?to=(composeTo)"
+                          modal:self selector:@selector(composeTo:)];
   }
   return self;
 }
 
 - (void)dealloc {
+  [[TTAppMap sharedMap] removeURL:@"tt://compose?to=(composeTo)"];
   [_sendTimer invalidate];
-  [_dataSource release];
 	[super dealloc];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-- (void)compose {
-  id recipient = [[[TTTableField alloc] initWithText:@"Alan Jones" url:TT_NULL_URL] autorelease];
-  TTMessageController* controller = [[[TTMessageController alloc] 
-    initWithRecipients:[NSArray arrayWithObject:recipient]] autorelease];
-  controller.dataSource = _dataSource;
+- (UIViewController*)composeTo:(NSString*)recipient {
+  TTTableTextItem* item = [TTTableTextItem itemWithText:recipient URL:TT_NULL_URL];
+
+  TTMessageController* controller =
+    [[[TTMessageController alloc] initWithRecipients:[NSArray arrayWithObject:item]] autorelease];
+  controller.dataSource = [MockDataSource mockDataSource:YES];
   controller.delegate = self;
-  [self presentModalViewController:controller animated:YES];
+
+  return controller;
 }
 
 - (void)cancelAddressBook {
-  [[TTNavigationCenter defaultCenter].frontViewController dismissModalViewControllerAnimated:YES];
+  [[TTAppMap sharedMap].visibleViewController dismissModalViewControllerAnimated:YES];
 }
 
 - (void)sendDelayed:(NSTimer*)timer {
@@ -63,11 +67,9 @@
   self.view = [[[UIView alloc] initWithFrame:appFrame] autorelease];;
   self.view.backgroundColor = [UIColor colorWithWhite:0.9 alpha:1];
   
-  _dataSource = [[MockDataSource mockDataSource:YES] retain];
-  
   UIButton* button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
   [button setTitle:@"Compose Message" forState:UIControlStateNormal];
-  [button addTarget:self action:@selector(compose)
+  [button addTarget:@"tt://compose?to=Alan%20Jones" action:@selector(loadAsURL)
     forControlEvents:UIControlEventTouchUpInside];
   button.frame = CGRectMake(20, 20, 280, 50);
   [self.view addSubview:button];

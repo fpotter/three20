@@ -292,10 +292,10 @@
   
   if (padding && padding.position) {
     TTStyledFrame* blockFrame = [self addBlockFrame:style element:elt width:_width height:_height];
-    
+
     CGFloat contentWidth = padding.margin.left + padding.margin.right;
     CGFloat contentHeight = padding.margin.top + padding.margin.bottom;
-    
+
     if (elt.firstChild) {
       TTStyledNode* child = elt.firstChild;
       TTStyledLayout* layout = [[[TTStyledLayout alloc] initWithX:_minX
@@ -431,7 +431,7 @@
 
 - (void)layoutImage:(TTStyledImageNode*)imageNode container:(TTStyledElement*)element {
   UIImage* image = imageNode.image;
-  if (!image && imageNode.url) {
+  if (!image && imageNode.URL) {
     if (!_invalidImages) {
       _invalidImages = TTCreateNonRetainingArray();
     }
@@ -535,9 +535,13 @@
       : NSMakeRange(searchRange.location, length - searchRange.location);
     NSString* word = [text substringWithRange:wordRange];
 
+    // If there is no width to constrain to, then just use an infinite width,
+    // which will prevent any word wrapping
+    CGFloat availWidth = _width ? _width : CGFLOAT_MAX;
+
     // Measure the word and check to see if it fits on the current line
     CGSize wordSize = [word sizeWithFont:_font
-                            constrainedToSize:CGSizeMake(_width, CGFLOAT_MAX)
+                            constrainedToSize:CGSizeMake(availWidth, CGFLOAT_MAX)
                             lineBreakMode:UILineBreakModeWordWrap];
     if (_lineWidth + wordSize.width > _width) {
       // The word will be placed on the next line, so create a new frame for
@@ -564,7 +568,7 @@
       // frame for all of it.
       NSString* lines = [text substringWithRange:searchRange];
       CGSize linesSize = [lines sizeWithFont:_font
-                                constrainedToSize:CGSizeMake(_width, CGFLOAT_MAX)
+                                constrainedToSize:CGSizeMake(availWidth, CGFLOAT_MAX)
                                 lineBreakMode:UILineBreakModeWordWrap];
 
       [self addFrameForText:lines element:element node:textNode width:linesSize.width
@@ -638,12 +642,12 @@
 }
 
 - (void)dealloc {
-  [_rootFrame release];
-  [_font release];
-  [_boldFont release];
-  [_italicFont release];
-  [_linkStyle release];
-  [_invalidImages release];
+  TT_RELEASE_MEMBER(_rootFrame);
+  TT_RELEASE_MEMBER(_font);
+  TT_RELEASE_MEMBER(_boldFont);
+  TT_RELEASE_MEMBER(_italicFont);
+  TT_RELEASE_MEMBER(_linkStyle);
+  TT_RELEASE_MEMBER(_invalidImages);
   [super dealloc];
 }
 
@@ -661,10 +665,8 @@
   if (font != _font) {
     [_font release];
     _font = [font retain];
-    [_boldFont release];
-    _boldFont = nil;
-    [_italicFont release];
-    _italicFont = nil;
+    TT_RELEASE_MEMBER(_boldFont);
+    TT_RELEASE_MEMBER(_italicFont);
   }
 }
 

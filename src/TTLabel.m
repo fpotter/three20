@@ -27,8 +27,8 @@
 }
 
 - (void)dealloc {
-  [_text release];
-  [_font release];
+  TT_RELEASE_MEMBER(_text);
+  TT_RELEASE_MEMBER(_font);
   [super dealloc];
 }
 

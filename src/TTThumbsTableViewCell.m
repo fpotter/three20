@@ -20,7 +20,7 @@ static CGFloat kDefaultThumbSize = 75;
 - (void)assignPhotoAtIndex:(int)index toView:(TTThumbView*)thumbView {
   id<TTPhoto> photo = [_photo.photoSource photoAtIndex:index];
   if (photo) {
-    thumbView.thumbURL = [photo urlForVersion:TTPhotoVersionThumbnail];
+    thumbView.thumbURL = [photo URLForVersion:TTPhotoVersionThumbnail];
     thumbView.hidden = NO;
   } else {
     thumbView.thumbURL = nil;
@@ -29,7 +29,7 @@ static CGFloat kDefaultThumbSize = 75;
 }
 
 - (void)thumbTouched:(TTThumbView*)thumbView {
-  NSUInteger index;
+  NSUInteger index = 0;
   if (thumbView == _thumbView1) {
     index = _photo.index;
   } else if (thumbView == _thumbView2) {
@@ -62,8 +62,8 @@ static CGFloat kDefaultThumbSize = 75;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // NSObject
 
-- (id)initWithFrame:(CGRect)frame reuseIdentifier:(NSString*)identifier {
-  if (self = [super initWithFrame:frame reuseIdentifier:identifier]) {
+- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString*)identifier {
+  if (self = [super initWithStyle:style reuseIdentifier:identifier]) {
     _photo = nil;
     _delegate = nil;
     _thumbSize = kDefaultThumbSize;
@@ -96,11 +96,11 @@ static CGFloat kDefaultThumbSize = 75;
 }
 
 - (void)dealloc {
-  [_photo release];
-  [_thumbView1 release];
-  [_thumbView2 release];
-  [_thumbView3 release];
-  [_thumbView4 release];
+  TT_RELEASE_MEMBER(_photo);
+  TT_RELEASE_MEMBER(_thumbView1);
+  TT_RELEASE_MEMBER(_thumbView2);
+  TT_RELEASE_MEMBER(_thumbView3);
+  TT_RELEASE_MEMBER(_thumbView4);
   [super dealloc];
 }
 
@@ -149,8 +149,7 @@ static CGFloat kDefaultThumbSize = 75;
       return;
     }
     
-    _thumbView1.thumbURL = [_photo urlForVersion:TTPhotoVersionThumbnail];
-    [self assignPhotoAtIndex:_photo.index+1 toView:_thumbView2];
+    _thumbView1.thumbURL = [_photo URLForVersion:TTPhotoVersionThumbnail];
     [self assignPhotoAtIndex:_photo.index+1 toView:_thumbView2];
     [self assignPhotoAtIndex:_photo.index+2 toView:_thumbView3];
     [self assignPhotoAtIndex:_photo.index+3 toView:_thumbView4];

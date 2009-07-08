@@ -9,11 +9,12 @@
   id<TTTableViewDataSource> _dataSource;
   NSArray* _fields;
   NSMutableArray* _fieldViews;
-  UINavigationBar* _navigationBar;
   UIScrollView* _scrollView;
   TTTextEditor* _textEditor;
   TTActivityLabel* _statusView;
   NSArray* _initialRecipients;
+  BOOL _showsRecipientPicker;
+  BOOL _isModified;
 }
 
 @property(nonatomic,assign) id<TTMessageControllerDelegate> delegate;
@@ -21,11 +22,52 @@
 @property(nonatomic,retain) NSArray* fields;
 @property(nonatomic,retain) NSString* subject;
 @property(nonatomic,retain) NSString* body;
+@property(nonatomic) BOOL showsRecipientPicker;
+@property(nonatomic,readonly) BOOL isModified;
 
 - (id)initWithRecipients:(NSArray*)recipients;
 
 - (void)addRecipient:(id)recipient forFieldAtIndex:(NSUInteger)fieldIndex;
+
+- (NSString*)textForFieldAtIndex:(NSUInteger)fieldIndex;
 - (void)setText:(NSString*)text forFieldAtIndex:(NSUInteger)fieldIndex;
+
+- (NSString*)titleForSending;
+
+/**
+ * Tells the delegate to send the message.
+ */
+- (void)send;
+
+/**
+ * Cancel the message, but confirm first with the user if necessary.
+ */
+- (void)cancel:(BOOL)confirmIfNecessary;
+
+/**
+ * Confirms with the user that it is ok to cancel.
+ */
+- (void)confirmCancellation;
+
+/**
+ *
+ */
+- (void)messageWillSend:(NSArray*)fields;
+
+/**
+ * The user touched the recipient picker button.
+ */
+- (void)messageWillShowRecipientPicker;
+
+/**
+ *
+ */
+- (void)messageDidSend;
+
+/**
+ * Determines if the message should cancel without confirming with the user.
+ */
+- (BOOL)messageShouldCancel;
 
 @end
 
@@ -37,7 +79,7 @@
 
 - (void)composeController:(TTMessageController*)controller didSendFields:(NSArray*)fields;
 
-- (void)composeControllerDidCancel:(TTMessageController*)controller;
+- (void)composeControllerWillCancel:(TTMessageController*)controller;
 
 - (void)composeControllerShowRecipientPicker:(TTMessageController*)controller;
 

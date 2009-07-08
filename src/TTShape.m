@@ -562,7 +562,6 @@ static CGFloat kInsetWidth = 5;
         reset:(BOOL)reset {
   CGFloat fw = size.width;
   CGFloat fh = size.height;
-  CGFloat ph = _pointSize.height;
   CGFloat pointX = 0;
 
   if (lightSource >= 0 && lightSource <= 90) {
@@ -577,7 +576,7 @@ static CGFloat kInsetWidth = 5;
   }
   
   if (_pointLocation >= 45 && _pointLocation <= 135) {
-    ph = _pointAngle >= 0 && _pointAngle < 180 ? _pointSize.height : -_pointSize.height;
+    CGFloat ph = _pointAngle >= 0 && _pointAngle < 180 ? _pointSize.height : -_pointSize.height;
     pointX = ((_pointLocation-45)/90) * fw;
     
     CGPathAddLineToPoint(path, nil, pointX-floor(_pointSize.width/2), 0);
@@ -604,7 +603,6 @@ static CGFloat kInsetWidth = 5;
         reset:(BOOL)reset {
   CGFloat fw = size.width;
   CGFloat fh = size.height;
-  CGFloat ph = _pointSize.height;
   CGFloat pointX = 0;
 
   if (reset) {
@@ -612,6 +610,7 @@ static CGFloat kInsetWidth = 5;
   }
   
   if (_pointLocation >= 225 && _pointLocation <= 315) {
+    CGFloat ph;
     if (_pointAngle >= 0 && _pointAngle < 180) {
       ph = _pointSize.height;
     } else {
@@ -619,7 +618,7 @@ static CGFloat kInsetWidth = 5;
     }
 
     pointX = fw - (((_pointLocation-225)/90) * fw);
-    CGPathAddArcToPoint(path, nil, fw, fh, floor(fw/2), fh, RD(_radius));
+    CGPathAddArcToPoint(path, nil,  fw-RD(_radius), fh, floor(fw/2), fh, RD(_radius));
     CGPathAddLineToPoint(path, nil, pointX+floor(_pointSize.width/2), fh);
     CGPathAddLineToPoint(path, nil, pointX, fh-ph);
     CGPathAddLineToPoint(path, nil, pointX-floor(_pointSize.width/2), fh);

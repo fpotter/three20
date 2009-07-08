@@ -7,6 +7,8 @@
 #import "Three20/UIColorAdditions.h"
 #import "Three20/UIImageAdditions.h"
 #import "Three20/UIViewControllerAdditions.h"
+#import "Three20/UINavigationControllerAdditions.h"
+#import "Three20/UITabBArControllerAdditions.h"
 #import "Three20/UIViewAdditions.h"
 #import "Three20/UITableViewAdditions.h"
 #import "Three20/UIWebViewAdditions.h"
@@ -20,6 +22,8 @@
 #else
 #define TTLOG    
 #endif
+
+#define TTWARN TTLOG
 
 #define TTLOGRECT(rect) \
   TTLOG(@"%s x=%f, y=%f, w=%f, h=%f", #rect, rect.origin.x, rect.origin.y, \
@@ -58,13 +62,13 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Color helpers
 
-#define RGBCOLOR(r,g,b) [UIColor colorWithRed:r/256.0 green:g/256.0 blue:b/256.0 alpha:1]
-#define RGBACOLOR(r,g,b,a) [UIColor colorWithRed:r/256.0 green:g/256.0 blue:b/256.0 alpha:a]
+#define RGBCOLOR(r,g,b) [UIColor colorWithRed:r/255.0 green:g/255.0 blue:b/255.0 alpha:1]
+#define RGBACOLOR(r,g,b,a) [UIColor colorWithRed:r/255.0 green:g/255.0 blue:b/255.0 alpha:a]
 
 #define HSVCOLOR(h,s,v) [UIColor colorWithHue:h saturation:s value:v alpha:1]
 #define HSVACOLOR(h,s,v,a) [UIColor colorWithHue:h saturation:s value:v alpha:a]
 
-#define RGBA(r,g,b,a) r/256.0, g/256.0, b/256.0, a
+#define RGBA(r,g,b,a) r/255.0, g/255.0, b/255.0, a
 
 #define RGBHEXCOLOR(rgb) RGBCOLOR( ((rgb >> 16) & 0xff) , ((rgb >> 8) & 0xff) , (rgb & 0xff) )
 
@@ -106,6 +110,8 @@ typedef enum {
 #define TT_DEFAULT_CACHE_INVALIDATION_AGE (60*60*24) // 1 day
 #define TT_DEFAULT_CACHE_EXPIRATION_AGE (60*60*24*7) // 1 week
 
+#define TT_NULL_URL @" "
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Animation
 
@@ -120,6 +126,7 @@ typedef enum {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+#define TT_RELEASE_MEMBER(__POINTER) { [__POINTER release]; __POINTER = nil; }
 /**
  * Creates a mutable array which does not retain references to the objects it contains.
  */
@@ -160,6 +167,11 @@ CGRect TTApplicationFrame();
 CGRect TTNavigationFrame();
 
 /**
+ * Gets the application frame below the navigation bar and above the keyboard.
+ */
+CGRect TTKeyboardNavigationFrame();
+
+/**
  * Gets the application frame below the navigation bar and above a toolbar.
  */
 CGRect TTToolbarNavigationFrame();
@@ -189,6 +201,16 @@ void TTNetworkRequestStarted();
 void TTNetworkRequestStopped();
 
 /**
+ * Gets the current runtime version of iPhone OS.
+ */
+float TTOSVersion();
+
+/**
+ * Checks if the link-time version of the OS is at least a certain version.
+ */
+BOOL TTOSVersionIsAtLeast(float version);
+
+/**
  * Gets the current system locale chosen by the user.
  *
  * This is necessary because [NSLocale currentLocale] always returns en_US.
@@ -200,13 +222,15 @@ NSLocale* TTCurrentLocale();
  */
 NSString* TTLocalizedString(NSString* key, NSString* comment);
 
-BOOL TTIsBundleURL(NSString* url);
+BOOL TTIsBundleURL(NSString* URL);
 
-BOOL TTIsDocumentsURL(NSString* url);
+BOOL TTIsDocumentsURL(NSString* URL);
 
 NSString* TTPathForBundleResource(NSString* relativePath);
 
 NSString* TTPathForDocumentsResource(NSString* relativePath);
+
+void TTSwizzle(Class cls, SEL originalSel, SEL newSel);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -214,7 +238,7 @@ NSString* TTPathForDocumentsResource(NSString* relativePath);
 
 @property(nonatomic,readonly) NSString* viewURL;
 
-+ (id<TTPersistable>)fromURL:(NSURL*)url;
++ (id<TTPersistable>)fromURL:(NSURL*)URL;
 
 @end
 

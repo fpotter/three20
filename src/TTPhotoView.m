@@ -3,6 +3,7 @@
 #import "Three20/TTImageView.h"
 #import "Three20/TTActivityLabel.h"
 #import "Three20/TTURLCache.h"
+#import "Three20/TTURLRequestQueue.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -22,12 +23,12 @@ static const CGFloat kMaxCaptionHeight = 100;
 // private
 
 - (BOOL)loadVersion:(TTPhotoVersion)version fromNetwork:(BOOL)fromNetwork {
-  NSString* url = [_photo urlForVersion:version];
-  if (url) {
-    UIImage* image = [[TTURLCache sharedCache] imageForURL:url];
+  NSString* URL = [_photo URLForVersion:version];
+  if (URL) {
+    UIImage* image = [[TTURLCache sharedCache] imageForURL:URL];
     if (image || fromNetwork) {
       _photoVersion = version;
-      self.url = url;
+      self.URL = URL;
       return YES;
     }
   }
@@ -73,11 +74,12 @@ static const CGFloat kMaxCaptionHeight = 100;
 }
 
 - (void)dealloc {
+  [[TTURLRequestQueue mainQueue] cancelRequestsWithDelegate:self];
   [super setDelegate:nil];
-  [_photo release];
-  [_statusSpinner release];
-  [_statusLabel release];
-  [_captionLabel release];
+  TT_RELEASE_MEMBER(_photo);
+  TT_RELEASE_MEMBER(_statusSpinner);
+  TT_RELEASE_MEMBER(_statusLabel);
+  TT_RELEASE_MEMBER(_captionLabel);
   [super dealloc];
 }
 
@@ -85,7 +87,7 @@ static const CGFloat kMaxCaptionHeight = 100;
 // UIImageView
 
 - (void)setImage:(UIImage*)image {
-  if (image != _defaultImage || !_photo || self.url != [_photo urlForVersion:TTPhotoVersionLarge]) {
+  if (image != _defaultImage || !_photo || self.URL != [_photo URLForVersion:TTPhotoVersionLarge]) {
     if (image == _defaultImage) {
       self.contentMode = UIViewContentModeCenter;
     } else {
@@ -112,8 +114,8 @@ static const CGFloat kMaxCaptionHeight = 100;
 }
 
 - (void)imageViewDidFailLoadWithError:(NSError*)error {
-  if (self.url == [_photo urlForVersion:TTPhotoVersionLarge]) {
-    [self showStatus:TTLocalizedString(@"This photo is not available.", @"")];
+  if (self.URL == [_photo URLForVersion:TTPhotoVersionLarge]) {
+    [self showStatus:TTLocalizedString(@"This photo could not be loaded.", @"")];
   } else {
     [self showProgress:0];
   }
@@ -168,7 +170,7 @@ static const CGFloat kMaxCaptionHeight = 100;
     _photo = [photo retain];
     _photoVersion = TTPhotoVersionNone;
     
-    self.url = nil;
+    self.URL = nil;
     
     [self showCaption:photo.caption];
   }
@@ -207,7 +209,7 @@ static const CGFloat kMaxCaptionHeight = 100;
 - (void)loadImage {
   if (_photo) {
     _photoVersion = TTPhotoVersionLarge;
-    self.url = [_photo urlForVersion:TTPhotoVersionLarge];
+    self.URL = [_photo URLForVersion:TTPhotoVersionLarge];
   }
 }
 

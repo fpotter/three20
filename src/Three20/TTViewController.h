@@ -26,31 +26,19 @@ typedef enum {
   BOOL _invalidViewLoading;
   BOOL _invalidViewData;
   BOOL _validating;
-  BOOL _appearing;
-  BOOL _appeared;
-  BOOL _unloaded;
+  BOOL _isViewAppearing;
+  BOOL _hasViewAppeared;
   BOOL _autoresizesForKeyboard;
 }
 
 /**
- * The primary object behind the view.
- */
-@property(nonatomic,readonly) id<TTPersistable> viewObject;
-
-/**
- * A description of the kind of view to be presented for viewObject when the view is populated.
- */
-@property(nonatomic,readonly) NSString* viewType;
-
-/**
- * A temporary holding place for persisted view state waiting to be restored.
- */
-@property(nonatomic,retain) NSDictionary* frozenState;
-
-/**
  * Indicates the state of the view with regards to the content it displays.
+ *
+ * Changing viewState will invalidate related portions of the view, which may result in
+ * updateLoadingView or updateLoadedView to be called to update the aspects of the view that
+ * have changed.
  */ 
-@property(nonatomic,readonly) TTViewState viewState;
+@property(nonatomic) TTViewState viewState;
 
 /**
  * An error that occurred while trying to load content.
@@ -68,43 +56,24 @@ typedef enum {
 @property(nonatomic,retain) UIColor* navigationBarTintColor;
 
 /**
- * The style of the status bar when this controller is appearing.
+ * The style of the status bar when this controller is isViewAppearing.
  */
 @property(nonatomic) UIStatusBarStyle statusBarStyle;
 
 /**
  * The view has appeared at least once.
  */
-@property(nonatomic,readonly) BOOL appeared;
+@property(nonatomic,readonly) BOOL hasViewAppeared;
 
 /**
  * The view is currently visible.
  */
-@property(nonatomic,readonly) BOOL appearing;
+@property(nonatomic,readonly) BOOL isViewAppearing;
 
 /**
  * Determines if the view will be resized automatically to fit the keyboard.
  */
 @property(nonatomic) BOOL autoresizesForKeyboard;
-
-/**
- * Update the view with a new primary object.
- *
- * @param object The primary object to display.
- * @param name A description that hints at how to display the object.
- * @param state A dictionary of attributes persisted in a previous life.
- */
-- (void)showObject:(id)object inView:(NSString*)viewType withState:(NSDictionary*)state;
-
-/**
- * Persist attributes of the view to a dictionary that can be restored later.
- */
-- (void)persistView:(NSMutableDictionary*)state;
-
-/**
- * Restore attributes of the view from an earlier call to persistView.
- */
-- (void)restoreView:(NSDictionary*)state;
 
 /**
  * Reloads content from external sources.
@@ -133,11 +102,6 @@ typedef enum {
 - (void)invalidateView;
 
 /**
- * Invalidates a particular aspect of the view.
- */
-- (void)invalidateViewState:(TTViewState)state;
-
-/**
  * Updates all invalid aspects of the view.
  */
 - (void)validateView;
@@ -160,15 +124,7 @@ typedef enum {
 /**
  *
  */
-- (void)updateDataView;
-
-/**
- * Destroys all views prior to the controller itself being destroyed or going into hibernation
- * (due to a low memory warning).
- *
- * This is meant to be implemented by subclasses - the default does nothing.
- */
-- (void)unloadView;
+- (void)updateLoadedView;
 
 /**
  * Sent to the controller before the keyboard slides in.

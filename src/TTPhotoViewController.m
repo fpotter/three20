@@ -42,22 +42,26 @@ static const NSTimeInterval kSlideshowInterval = 2;
     self.navigationBarStyle = UIBarStyleBlackTranslucent;
     self.navigationBarTintColor = nil;
     self.statusBarStyle = UIStatusBarStyleBlackTranslucent;
-    self.wantsFullScreenLayout = YES;
+    
+    if ([self respondsToSelector:@selector(setWantsFullScreenLayout:)]) {
+      [self setWantsFullScreenLayout:YES];
+    }
   }
   return self;
 }
 
 - (void)dealloc {
-  [_thumbsController release];
+  _thumbsController.delegate = nil;
+  TT_RELEASE_MEMBER(_thumbsController);
   [_slideshowTimer invalidate];
   _slideshowTimer = nil;
   [_loadTimer invalidate];
   _loadTimer = nil;
-  [_centerPhoto release];
+  TT_RELEASE_MEMBER(_centerPhoto);
   [_photoSource.delegates removeObject:self];
-  [_photoSource release];
-  [_statusText release];
-  [_defaultImage release];
+  TT_RELEASE_MEMBER(_photoSource);
+  TT_RELEASE_MEMBER(_statusText);
+  TT_RELEASE_MEMBER(_defaultImage);
   [super dealloc];
 }
 
@@ -199,7 +203,7 @@ static const NSTimeInterval kSlideshowInterval = 2;
 }
 
 - (void)showProgress:(CGFloat)progress {
-  if ((self.appeared || self.appearing) && progress >= 0 && !self.centerPhotoView) {
+  if ((self.hasViewAppeared || self.isViewAppearing) && progress >= 0 && !self.centerPhotoView) {
     [self.statusView showProgress:progress];
     self.statusView.hidden = NO;
   } else {
@@ -211,7 +215,7 @@ static const NSTimeInterval kSlideshowInterval = 2;
   [_statusText release];
   _statusText = [status retain];
 
-  if ((self.appeared || self.appearing) && status && !self.centerPhotoView) {
+  if ((self.hasViewAppeared || self.isViewAppearing) && status && !self.centerPhotoView) {
     [self.statusView showStatus:status];
     self.statusView.hidden = NO;
   } else {
@@ -229,11 +233,11 @@ static const NSTimeInterval kSlideshowInterval = 2;
   if (!_thumbsController) {
     _thumbsController = [[self createThumbsViewController] retain];
     _thumbsController.delegate = self;
-    _thumbsController.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]
-    initWithCustomView:[[[UIView alloc] initWithFrame:CGRectZero] autorelease]];
-    _thumbsController.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]
+    _thumbsController.navigationItem.leftBarButtonItem = [[[UIBarButtonItem alloc]
+    initWithCustomView:[[[UIView alloc] initWithFrame:CGRectZero] autorelease]] autorelease];
+    _thumbsController.navigationItem.rightBarButtonItem = [[[UIBarButtonItem alloc]
     initWithTitle:TTLocalizedString(@"Done", @"") style:UIBarButtonItemStyleBordered
-    target:self action:@selector(hideThumbnails)];
+    target:self action:@selector(hideThumbnails)] autorelease];
   }
   
   _thumbsController.photoSource = _photoSource;
@@ -295,10 +299,20 @@ static const NSTimeInterval kSlideshowInterval = 2;
 }
 
 - (void)showBarsAnimationDidStop {
+  if (![self respondsToSelector:@selector(setWantsFullScreenLayout:)]) {
+    _innerView.top = -CHROME_HEIGHT;
+    self.view.top = TOOLBAR_HEIGHT;
+    self.view.height -= TOOLBAR_HEIGHT;
+  }
   self.navigationController.navigationBarHidden = NO;
 }
 
 - (void)hideBarsAnimationDidStop {
+  if (![self respondsToSelector:@selector(setWantsFullScreenLayout:)]) {
+    _innerView.top = -STATUS_HEIGHT;
+    self.view.top = 0;
+    self.view.height += TOOLBAR_HEIGHT;
+  }
   self.navigationController.navigationBarHidden = YES;
 }
 
@@ -309,8 +323,9 @@ static const NSTimeInterval kSlideshowInterval = 2;
   CGRect screenFrame = [UIScreen mainScreen].bounds;
   self.view = [[[TTUnclippedView alloc] initWithFrame:screenFrame] autorelease];
     
-  CGRect innerFrame = CGRectMake(0, 0,
-                                 screenFrame.size.width, screenFrame.size.height);
+  CGFloat y = [self respondsToSelector:@selector(setWantsFullScreenLayout:)] ? 0 : -CHROME_HEIGHT;
+  CGRect innerFrame = CGRectMake(0, y,
+                                 screenFrame.size.width, screenFrame.size.height + CHROME_HEIGHT);
   _innerView = [[UIView alloc] initWithFrame:innerFrame];
   [self.view addSubview:_innerView];
   
@@ -342,13 +357,31 @@ static const NSTimeInterval kSlideshowInterval = 2;
   [_innerView addSubview:_toolbar];
 }
 
+- (void)viewDidUnload {
+  [super viewDidUnload];
+  _scrollView.delegate = nil;
+  _scrollView.dataSource = nil;
+  TT_RELEASE_MEMBER(_innerView);
+  TT_RELEASE_MEMBER(_scrollView);
+  TT_RELEASE_MEMBER(_photoStatusView);
+  TT_RELEASE_MEMBER(_nextButton);
+  TT_RELEASE_MEMBER(_previousButton);
+  TT_RELEASE_MEMBER(_toolbar);
+}
+
 - (void)viewDidAppear:(BOOL)animated {
   [super viewDidAppear:animated];
 
-  [self hideBarsAnimationDidStop];
-  [self showBarsAnimationDidStop];
-  if (!_toolbar.alpha) {
+  if (![self respondsToSelector:@selector(setWantsFullScreenLayout:)]) {
+    if (!self.nextViewController) {
+      self.view.superview.frame = CGRectOffset(self.view.superview.frame, 0, TOOLBAR_HEIGHT);
+    }
+
     [self hideBarsAnimationDidStop];
+    [self showBarsAnimationDidStop];
+    if (!_toolbar.alpha) {
+      [self hideBarsAnimationDidStop];
+    }
   }
 }
 
@@ -356,7 +389,11 @@ static const NSTimeInterval kSlideshowInterval = 2;
   [super viewWillDisappear:animated];
 
   [self pauseAction];
-  
+
+  if (![self respondsToSelector:@selector(setWantsFullScreenLayout:)]) {
+    self.view.superview.frame = CGRectOffset(self.view.superview.frame, 0, TOOLBAR_HEIGHT);
+    self.view.frame = CGRectOffset(self.view.frame, 0, -TOOLBAR_HEIGHT);
+  }
   if (self.nextViewController) {
     [self showBars:YES animated:NO];
   }
@@ -418,7 +455,7 @@ static const NSTimeInterval kSlideshowInterval = 2;
 
 - (void)updateView {
   if (_photoSource.isLoading) {
-    [self invalidateViewState:TTViewLoading];
+    self.viewState = TTViewLoading;
   } else if (!_centerPhoto) {
     [self loadPhotosFromIndex:!_photoSource.isLoaded ? 0 : _photoSource.maxPhotoIndex+1
       toIndex:TT_INFINITE_PHOTO_INDEX];
@@ -426,11 +463,11 @@ static const NSTimeInterval kSlideshowInterval = 2;
     [self loadPhotosFromIndex:0 toIndex:TT_INFINITE_PHOTO_INDEX];
   } else {
     if (_contentError) {
-      [self invalidateViewState:TTViewDataLoadedError];
+      self.viewState = TTViewDataLoadedError;
     } else if (!_photoSource.numberOfPhotos) {
-      [self invalidateViewState:TTViewEmpty];
+      self.viewState = TTViewEmpty;
     } else {
-      [self invalidateViewState:TTViewDataLoaded];
+      self.viewState = TTViewDataLoaded;
     }
   }
 
@@ -445,7 +482,7 @@ static const NSTimeInterval kSlideshowInterval = 2;
   }
 }
 
-- (void)updateDataView {
+- (void)updateLoadedView {
   if (self.viewState & TTViewDataLoaded) {
     [self showStatus:nil];
   } else if (self.viewState & TTViewDataLoadedError) {
@@ -455,23 +492,6 @@ static const NSTimeInterval kSlideshowInterval = 2;
   }
   
   [self updatePhotoView];
-}
-
-- (void)unloadView {
-  [_innerView release];
-  _innerView = nil;
-  _scrollView.delegate = nil;
-  _scrollView.dataSource = nil;
-  [_scrollView release];
-  _scrollView = nil;
-  [_photoStatusView release];
-  _photoStatusView = nil;
-  [_nextButton release];
-  _nextButton = nil;
-  [_previousButton release];
-  _previousButton = nil;
-  [_toolbar release];
-  _toolbar = nil;
 }
 
 - (NSString*)titleForActivity {
@@ -506,7 +526,7 @@ static const NSTimeInterval kSlideshowInterval = 2;
 // TTPhotoSourceDelegate
 
 - (void)photoSourceDidStartLoad:(id<TTPhotoSource>)photoSource {
-  [self invalidateViewState:TTViewLoading];
+  self.viewState = TTViewLoading;
 }
 
 - (void)photoSourceDidFinishLoad:(id<TTPhotoSource>)photoSource {
@@ -519,9 +539,9 @@ static const NSTimeInterval kSlideshowInterval = 2;
   }
   
   if (!_photoSource.numberOfPhotos) {
-    [self invalidateViewState:TTViewEmpty];
+    self.viewState = TTViewEmpty;
   } else {
-    [self invalidateViewState:TTViewDataLoaded];
+    self.viewState = TTViewDataLoaded;
   }
 }
 
@@ -529,14 +549,14 @@ static const NSTimeInterval kSlideshowInterval = 2;
   [self resetVisiblePhotoViews];
 
   self.contentError = error;
-  [self invalidateViewState:TTViewDataLoadedError];
+  self.viewState = TTViewDataLoadedError;
 }
 
 - (void)photoSourceDidCancelLoad:(id<TTPhotoSource>)photoSource {
   [self resetVisiblePhotoViews];
 
   self.contentError = nil;
-  [self invalidateViewState:TTViewDataLoadedError];
+  self.viewState = TTViewDataLoadedError;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

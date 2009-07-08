@@ -22,7 +22,7 @@
 }
 
 - (void)dealloc {
-  [_nextFrame release];
+  TT_RELEASE_MEMBER(_nextFrame);
   [super dealloc];
 }
 
@@ -104,8 +104,8 @@
 }
 
 - (void)dealloc {
-  [_firstChildFrame release];
-  [_style release];
+  TT_RELEASE_MEMBER(_firstChildFrame);
+  TT_RELEASE_MEMBER(_style);
   [super dealloc];
 }
 
@@ -158,7 +158,7 @@
 }
 
 - (TTStyledBoxFrame*)hitTest:(CGPoint)point {
-  if (CGRectContainsPoint(CGRectInset(_bounds, 0, -5), point)) {
+  if (CGRectContainsPoint(_bounds, point)) {
     TTStyledBoxFrame* frame = [_firstChildFrame hitTest:point];
     return frame ? frame : self;
   } else if (_nextFrame) {
@@ -182,6 +182,10 @@
     _inlineNextFrame = nil;
   }
   return self;
+}
+
+- (void)dealloc {
+  [super dealloc];
 }
 
 - (TTStyledInlineFrame*)inlineParentFrame {
@@ -213,8 +217,8 @@
 }
 
 - (void)dealloc {
-  [_text release];
-  [_font release];
+  TT_RELEASE_MEMBER(_text);
+  TT_RELEASE_MEMBER(_font);
   [super dealloc];
 }
 
@@ -244,6 +248,7 @@
 }
 
 - (void)dealloc {
+  TT_RELEASE_MEMBER(_style);
   [super dealloc];
 }
 

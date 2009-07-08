@@ -3,17 +3,20 @@
 @protocol TTURLRequestDelegate, TTURLResponse;
 
 @interface TTURLRequest : NSObject {
-  NSString* _url;
+  NSString* _URL;
   NSString* _httpMethod;
   NSData* _httpBody;
   NSMutableDictionary* _parameters;
   NSString* _contentType;
   NSMutableArray* _delegates;
+  NSMutableArray* _files;
   id<TTURLResponse> _response;
   TTURLRequestCachePolicy _cachePolicy;
   NSTimeInterval _cacheExpirationAge;
   NSString* _cacheKey;
   NSDate* _timestamp;
+  NSInteger _totalBytesLoaded;
+  NSInteger _totalBytesExpected;
   id _userInfo;
   BOOL _isLoading;
   BOOL _shouldHandleCookies;
@@ -33,7 +36,7 @@
 /**
  * The URL to be loaded by the request.
  */
-@property(nonatomic,copy) NSString* url;
+@property(nonatomic,copy) NSString* URL;
 
 /**
  * The HTTP method to send with the request.
@@ -43,7 +46,7 @@
 /**
  * The HTTP body to send with the request.
  */
-@property(nonatomic,readonly) NSData* httpBody;
+@property(nonatomic,retain) NSData* httpBody;
 
 /**
  * The content type of the data in the request.
@@ -75,13 +78,22 @@
 
 @property(nonatomic) BOOL shouldHandleCookies;
 
+@property(nonatomic) NSInteger totalBytesLoaded;
+
+@property(nonatomic) NSInteger totalBytesExpected;
+
 @property(nonatomic) BOOL respondedFromCache;
 
 + (TTURLRequest*)request;
 
-+ (TTURLRequest*)requestWithURL:(NSString*)url delegate:(id<TTURLRequestDelegate>)delegate;
++ (TTURLRequest*)requestWithURL:(NSString*)URL delegate:(id<TTURLRequestDelegate>)delegate;
 
-- (id)initWithURL:(NSString*)url delegate:(id<TTURLRequestDelegate>)delegate;
+- (id)initWithURL:(NSString*)URL delegate:(id<TTURLRequestDelegate>)delegate;
+
+/**
+ * Adds a file whose data will be posted.
+ */
+- (void)addFile:(NSData*)data mimeType:(NSString*)mimeType fileName:(NSString*)fileName;
 
 /**
  * Attempts to send a request.
@@ -101,6 +113,8 @@
  */
 - (void)cancel;
 
+- (NSURLRequest*)createNSURLRequest;
+
 @end
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -113,6 +127,13 @@
  * The request has begun loading.
  */
 - (void)requestDidStartLoad:(TTURLRequest*)request;
+
+/**
+ * The request has loaded some more data.
+ *
+ * Check the totalBytesLoaded and totalBytesExpected properties for details.
+ */
+- (void)requestDidUploadData:(TTURLRequest*)request;
 
 /**
  * The request has loaded data has loaded and been processed into a response.

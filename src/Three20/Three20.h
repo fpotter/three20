@@ -1,6 +1,6 @@
 
 #import "Three20/TTGlobal.h"
-#import "Three20/TTNavigationCenter.h"
+#import "Three20/TTAppMap.h"
 #import "Three20/TTDefaultStyleSheet.h"
 
 #import "Three20/TTDefaultStyleSheet.h"
@@ -42,9 +42,9 @@
 #import "Three20/TTTableView.h"
 #import "Three20/TTTableViewDataSource.h"
 #import "Three20/TTTableViewDelegate.h"
-#import "Three20/TTTableField.h"
+#import "Three20/TTTableItem.h"
 #import "Three20/TTTableViewCell.h"
-#import "Three20/TTTableFieldCell.h"
+#import "Three20/TTTableItemCell.h"
 #import "Three20/TTTableHeaderView.h"
 
 #import "Three20/TTPhotoSource.h"

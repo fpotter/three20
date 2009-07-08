@@ -52,12 +52,12 @@ static const CGFloat kCancelHighlightThreshold = 4;
 
 - (void)dealloc {
   _text.delegate = nil;
-  [_text release];
-  [_font release];
-  [_textColor release];
-  [_highlightedTextColor release];
-  [_highlightedNode release];
-  [_highlightedFrame release];
+  TT_RELEASE_MEMBER(_text);
+  TT_RELEASE_MEMBER(_font);
+  TT_RELEASE_MEMBER(_textColor);
+  TT_RELEASE_MEMBER(_highlightedTextColor);
+  TT_RELEASE_MEMBER(_highlightedNode);
+  TT_RELEASE_MEMBER(_highlightedFrame);
   [super dealloc];
 }
 
@@ -137,10 +137,8 @@ static const CGFloat kCancelHighlightThreshold = 4;
         TTStyle* style = [TTSTYLESHEET styleWithSelector:className forState:UIControlStateNormal];
         [self setStyle:style forFrame:_highlightedFrame];
 
-        [_highlightedFrame release];
-        _highlightedFrame = nil;
-        [_highlightedNode release];
-        _highlightedNode = nil;
+        TT_RELEASE_MEMBER(_highlightedFrame);
+        TT_RELEASE_MEMBER(_highlightedNode);
         tableView.highlightedLabel = nil;
       }
 
@@ -170,11 +168,11 @@ static const CGFloat kCancelHighlightThreshold = 4;
       [_highlightedNode performDefaultAction];    
       [self setHighlightedFrame:nil];
     }
-    
-    // We definitely don't want to call this if the label is inside a TTTableView, because
-    // it winds up calling touchesEnded on the table twice, triggering the link twice
-    [super touchesEnded:touches withEvent:event];
   }
+
+  // We definitely don't want to call this if the label is inside a TTTableView, because
+  // it winds up calling touchesEnded on the table twice, triggering the link twice
+  [super touchesEnded:touches withEvent:event];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -198,6 +196,14 @@ static const CGFloat kCancelHighlightThreshold = 4;
   }
 }
 
+- (NSString*)html {
+  return [_text description];
+}
+
+- (void)setHtml:(NSString*)html {
+  self.text = [TTStyledText textFromXHTML:html];
+}
+
 - (void)setFont:(UIFont*)font {
   if (font != _font) {
     [_font release];
@@ -209,7 +215,7 @@ static const CGFloat kCancelHighlightThreshold = 4;
 
 - (UIColor*)textColor {
   if (!_textColor) {
-    _textColor = TTSTYLEVAR(textColor);
+    _textColor = [TTSTYLEVAR(textColor) retain];
   }
   return _textColor;
 }
@@ -224,7 +230,7 @@ static const CGFloat kCancelHighlightThreshold = 4;
 
 - (UIColor*)highlightedTextColor {
   if (!_highlightedTextColor) {
-    _highlightedTextColor = TTSTYLEVAR(highlightedTextColor);
+    _highlightedTextColor = [TTSTYLEVAR(highlightedTextColor) retain];
   }
   return _highlightedTextColor;
 }

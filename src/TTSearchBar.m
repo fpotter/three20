@@ -70,8 +70,9 @@ static const CGFloat kIndexViewMargin = 4;
   UIScrollView* scrollView = (UIScrollView*)[self firstParentOfClass:[UIScrollView class]];
   if (scrollView) {
     CGPoint offset = scrollView.contentOffset;
-    if (offset.y != self.top) {
-      [scrollView setContentOffset:CGPointMake(offset.x, self.top) animated:YES];
+    CGPoint myOffset = [self offsetFromView:scrollView];
+    if (offset.y != myOffset.y) {
+      [scrollView setContentOffset:CGPointMake(offset.x, myOffset.y) animated:YES];
     }
   }
 }
@@ -114,11 +115,11 @@ static const CGFloat kIndexViewMargin = 4;
 }
 
 - (void)dealloc {
-  [_searchField release];
-  [_boxView release];
-  [_textFieldStyle release];
-  [_tintColor release];
-  [_cancelButton release];
+  TT_RELEASE_MEMBER(_searchField);
+  TT_RELEASE_MEMBER(_boxView);
+  TT_RELEASE_MEMBER(_textFieldStyle);
+  TT_RELEASE_MEMBER(_tintColor);
+  TT_RELEASE_MEMBER(_cancelButton);
   [super dealloc];
 }
 
@@ -220,8 +221,7 @@ static const CGFloat kIndexViewMargin = 4;
       [self addSubview:_cancelButton];
     } else {
       [_cancelButton removeFromSuperview];
-      [_cancelButton release];
-      _cancelButton = nil;
+      TT_RELEASE_MEMBER(_cancelButton);
     }
   }
 }

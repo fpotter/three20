@@ -1,10 +1,12 @@
 #import "Three20/TTTableViewDelegate.h"
 #import "Three20/TTTableViewDataSource.h"
 #import "Three20/TTTableViewController.h"
-#import "Three20/TTTableField.h"
-#import "Three20/TTTableFieldCell.h"
+#import "Three20/TTTableItem.h"
+#import "Three20/TTTableItemCell.h"
 #import "Three20/TTTableHeaderView.h"
-#import "Three20/TTNavigationCenter.h"
+#import "Three20/TTTableView.h"
+#import "Three20/TTStyledTextLabel.h"
+#import "Three20/TTAppMap.h"
 #import "Three20/TTDefaultStyleSheet.h"
 #import "Three20/TTURLRequestQueue.h"
 
@@ -30,6 +32,10 @@ static const CGFloat kSectionHeaderHeight = 35;
   return self;
 }
 
+- (void)dealloc {
+  [super dealloc];
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // UITableViewDelegate
 
@@ -49,19 +55,19 @@ static const CGFloat kSectionHeaderHeight = 35;
   id<TTTableViewDataSource> dataSource = (id<TTTableViewDataSource>)tableView.dataSource;
 
   id object = [dataSource tableView:tableView objectForRowAtIndexPath:indexPath];
-  if ([object isKindOfClass:[TTTableField class]]) {
-    TTTableField* field = object;
-    if (field.url) {
-      [[TTNavigationCenter defaultCenter] displayURL:field.url];
+  if ([object isKindOfClass:[TTTableLinkedItem class]]) {
+    TTTableLinkedItem* item = object;
+    if (item.URL && [_controller shouldNavigateToURL:item.URL]) {
+      TTLoadURL(item.URL);
     }
 
-    if ([field isKindOfClass:[TTButtonTableField class]]) {
+    if ([object isKindOfClass:[TTTableButton class]]) {
       [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    } else if ([object isKindOfClass:[TTMoreButtonTableField class]]) {
-      TTMoreButtonTableField* moreLink = (TTMoreButtonTableField*)object;
+    } else if ([object isKindOfClass:[TTTableMoreButton class]]) {
+      TTTableMoreButton* moreLink = (TTTableMoreButton*)object;
       moreLink.isLoading = YES;
-      TTMoreButtonTableFieldCell* cell
-        = (TTMoreButtonTableFieldCell*)[tableView cellForRowAtIndexPath:indexPath];
+      TTTableMoreButtonCell* cell
+        = (TTTableMoreButtonCell*)[tableView cellForRowAtIndexPath:indexPath];
       cell.animating = YES;
       [tableView deselectRowAtIndexPath:indexPath animated:YES];
       
@@ -75,7 +81,7 @@ static const CGFloat kSectionHeaderHeight = 35;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // UIScrollViewDelegate
 
-- (BOOL)scrollViewWillScrollToTop:(UIScrollView *)scrollView {
+- (BOOL)scrollViewShouldScrollToTop:(UIScrollView *)scrollView {
   [TTURLRequestQueue mainQueue].suspended = YES;
   return YES;
 }
@@ -88,6 +94,14 @@ static const CGFloat kSectionHeaderHeight = 35;
   [TTURLRequestQueue mainQueue].suspended = YES;
 
   [_controller didBeginDragging];
+  
+  if ([scrollView isKindOfClass:[TTTableView class]]) {
+    TTTableView* tableView = (TTTableView*)scrollView;
+    [tableView hideMenu:YES];
+    
+    tableView.highlightedLabel.highlightedNode = nil;
+    tableView.highlightedLabel = nil;
+  }
 }
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {

@@ -2,7 +2,7 @@
 #import "Three20/TTPhotoViewController.h"
 #import "Three20/TTURLRequest.h"
 #import "Three20/TTUnclippedView.h"
-#import "Three20/TTTableField.h"
+#import "Three20/TTTableItem.h"
 #import "Three20/TTURLCache.h"
 #import "Three20/TTStyleSheet.h"
 
@@ -29,13 +29,15 @@ static CGFloat kThumbnailRowHeight = 79;
 - (id)initWithController:(TTThumbsViewController*)controller {
   if (self = [super init]) {
     _controller = controller;
-    [_controller.photoSource.delegates addObject:self];
+    _photoSource = [_controller.photoSource retain];
+    [_photoSource.delegates addObject:self];
   }
   return self;
 }
 
 - (void)dealloc {
-  [_controller.photoSource.delegates removeObject:self];
+  [_photoSource.delegates removeObject:self];
+  TT_RELEASE_MEMBER(_photoSource);
   [super dealloc];
 }
 
@@ -124,12 +126,12 @@ static CGFloat kThumbnailRowHeight = 79;
 
 - (id)tableView:(UITableView*)tableView objectForRowAtIndexPath:(NSIndexPath*)indexPath {
   if (indexPath.row == [tableView numberOfRowsInSection:0]-1 && self.hasMoreToLoad) {
-    NSString* title = TTLocalizedString(@"Load More Photos...", @"");
-    NSString* subtitle = [NSString stringWithFormat:
+    NSString* text = TTLocalizedString(@"Load More Photos...", @"");
+    NSString* caption = [NSString stringWithFormat:
       TTLocalizedString(@"Showing %d of %d Photos", @""), _controller.photoSource.maxPhotoIndex+1,
       _controller.photoSource.numberOfPhotos];
 
-    return [[[TTMoreButtonTableField alloc] initWithText:title subtitle:subtitle] autorelease];
+    return [TTTableMoreButton itemWithText:text caption:caption];
   } else {
     return [_controller.photoSource photoAtIndex:indexPath.row * kColumnCount];
   }
@@ -192,7 +194,10 @@ static CGFloat kThumbnailRowHeight = 79;
     self.navigationBarStyle = UIBarStyleBlackTranslucent;
     self.navigationBarTintColor = nil;
     self.statusBarStyle = UIStatusBarStyleBlackTranslucent;
-    self.wantsFullScreenLayout = YES;
+
+    if ([self respondsToSelector:@selector(setWantsFullScreenLayout:)]) {
+      [self setWantsFullScreenLayout:YES];
+    }
   }
   
   return self;
@@ -200,7 +205,7 @@ static CGFloat kThumbnailRowHeight = 79;
 
 - (void)dealloc {
   [_photoSource.delegates removeObject:self];
-  [_photoSource release];
+  TT_RELEASE_MEMBER(_photoSource);
   [super dealloc];
 }
 
@@ -213,9 +218,10 @@ static CGFloat kThumbnailRowHeight = 79;
   self.view.autoresizesSubviews = YES;
 	self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 
-  CGRect innerFrame = CGRectMake(0, 0,
-                                 screenFrame.size.width, screenFrame.size.height);
-  UIView* innerView = [[UIView alloc] initWithFrame:innerFrame];
+  CGFloat y = [self respondsToSelector:@selector(setWantsFullScreenLayout:)] ? 0 : -CHROME_HEIGHT;
+  CGRect innerFrame = CGRectMake(0, y,
+                                 screenFrame.size.width, screenFrame.size.height + CHROME_HEIGHT);
+  UIView* innerView = [[[UIView alloc] initWithFrame:innerFrame] autorelease];
   innerView.backgroundColor = TTSTYLEVAR(backgroundColor);
   [self.view addSubview:innerView];
   
@@ -236,10 +242,20 @@ static CGFloat kThumbnailRowHeight = 79;
 - (void)viewDidAppear:(BOOL)animated {
   [super viewDidAppear:animated];
   [self suspendLoadingThumbnails:NO];
+
+  if (![self respondsToSelector:@selector(setWantsFullScreenLayout:)]) {
+    if (!self.nextViewController) {
+      self.view.superview.frame = CGRectOffset(self.view.superview.frame, 0, TOOLBAR_HEIGHT);
+    }
+  }
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
   [super viewWillDisappear:animated];
+
+  if (![self respondsToSelector:@selector(setWantsFullScreenLayout:)]) {
+    self.view.superview.frame = CGRectOffset(self.view.superview.frame, 0, TOOLBAR_HEIGHT);
+  }
 }  
 
 - (void)viewDidDisappear:(BOOL)animated {

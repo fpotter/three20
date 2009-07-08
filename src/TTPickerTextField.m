@@ -39,7 +39,7 @@ static CGFloat kMinCursorWidth = 50;
 }
 
 - (void)dealloc {
-  [_cellViews release];
+  TT_RELEASE_MEMBER(_cellViews);
   [super dealloc];
 }
 
@@ -166,7 +166,9 @@ static CGFloat kMinCursorWidth = 50;
   return CGSizeMake(size.width, height);
 }
 
-- (void)touchesEnded:(NSSet*)touches withEvent:(UIEvent*)event {
+- (void)touchesBegan:(NSSet*)touches withEvent:(UIEvent*)event {
+  [super touchesBegan:touches withEvent:event];
+
   if (_dataSource) {
     UITouch* touch = [touches anyObject];
     if (touch.view == self) {
@@ -174,10 +176,10 @@ static CGFloat kMinCursorWidth = 50;
     } else {
       if ([touch.view isKindOfClass:[TTPickerViewCell class]]) {
         self.selectedCell = (TTPickerViewCell*)touch.view;
+        [self becomeFirstResponder];
       }
     }
   }
-  [super touchesEnded:touches withEvent:event];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -192,7 +194,8 @@ static CGFloat kMinCursorWidth = 50;
 
 - (CGRect)textRectForBounds:(CGRect)bounds {
   if (_dataSource && [self.text isEqualToString:kSelected]) {
-    return CGRectMake(0, 0, 0, 0);
+    // Hide the cursor while a cell is selected
+    return CGRectMake(-10, 0, 0, 0);
   } else {
     CGRect frame = CGRectOffset(bounds, _cursorOrigin.x, _cursorOrigin.y);
     frame.size.width -= (_cursorOrigin.x + kPaddingX + (self.rightView ? kClearButtonSize : 0));
@@ -232,7 +235,7 @@ static CGFloat kMinCursorWidth = 50;
 
 - (BOOL)hasText {
   return self.text.length && ![self.text isEqualToString:kEmpty]
-    && ![self.text isEqualToString:kSelected];
+         && ![self.text isEqualToString:kSelected];
 }
 
 - (void)showSearchResults:(BOOL)show {
@@ -249,7 +252,7 @@ static CGFloat kMinCursorWidth = 50;
   CGFloat y = superview.screenY;
   CGFloat visibleHeight = [self heightWithLines:1];
   CGFloat keyboardHeight = withKeyboard ? KEYBOARD_HEIGHT : 0;
-  CGFloat tableHeight = self.window.height - (y + visibleHeight + keyboardHeight);
+  CGFloat tableHeight = TTScreenBounds().size.height - (y + visibleHeight + keyboardHeight);
 
   return CGRectMake(0, self.bottom-1, superview.frame.size.width, tableHeight+1);
 }
@@ -262,6 +265,10 @@ static CGFloat kMinCursorWidth = 50;
     [self removeSelectedCell];
     [super shouldUpdate:emptyText];
     return NO;
+  } else if (!emptyText && !self.hasText && self.selectedCell) {
+    [self removeSelectedCell];
+    [super shouldUpdate:emptyText];
+    return YES;
   } else {
     return [super shouldUpdate:emptyText];
   }

@@ -35,13 +35,13 @@
     return
       [TTImageStyle styleWithImageURL:nil defaultImage:nil
                     contentMode:UIViewContentModeScaleAspectFill size:CGSizeZero next:
-      [TTSolidBorderStyle styleWithColor:RGBACOLOR(0,0,0,0.4) width:1 next:
+      [TTSolidBorderStyle styleWithColor:RGBACOLOR(0,0,0,0.2) width:1 next:
       [TTSolidFillStyle styleWithColor:RGBACOLOR(0,0,0,0.5) next:nil]]];
   } else {
     return
       [TTImageStyle styleWithImageURL:nil defaultImage:nil
                     contentMode:UIViewContentModeScaleAspectFill size:CGSizeZero next:
-      [TTSolidBorderStyle styleWithColor:RGBACOLOR(0,0,0,0.4) width:1 next:nil]];
+      [TTSolidBorderStyle styleWithColor:RGBACOLOR(0,0,0,0.2) width:1 next:nil]];
   }
 }
 
@@ -181,7 +181,7 @@
     [TTSolidBorderStyle styleWithColor:RGBCOLOR(178, 178, 178) width:1 next:nil]]];
 }
 
-- (TTStyle*)badge {
+- (TTStyle*)badgeWithFontSize:(CGFloat)fontSize {
   return
     [TTShapeStyle styleWithShape:[TTRoundedRectangleShape shapeWithRadius:TT_ROUNDED] next:
     [TTInsetStyle styleWithInset:UIEdgeInsetsMake(1, 1, 1, 1) next:
@@ -189,9 +189,17 @@
     [TTReflectiveFillStyle styleWithColor:RGBCOLOR(221, 17, 27) next:
     [TTInsetStyle styleWithInset:UIEdgeInsetsMake(-1, -1, -1, -1) next:
     [TTSolidBorderStyle styleWithColor:[UIColor whiteColor] width:2 next:
-    [TTBoxStyle styleWithPadding:UIEdgeInsetsMake(1, 6, 3, 6) next:
-    [TTTextStyle styleWithFont:[UIFont boldSystemFontOfSize:13]
+    [TTBoxStyle styleWithPadding:UIEdgeInsetsMake(2, 7, 2, 7) next:
+    [TTTextStyle styleWithFont:[UIFont boldSystemFontOfSize:fontSize]
                  color:[UIColor whiteColor] next:nil]]]]]]]];
+}
+
+- (TTStyle*)miniBadge {
+  return [self badgeWithFontSize:12];
+}
+
+- (TTStyle*)badge {
+  return [self badgeWithFontSize:15];
 }
 
 - (TTStyle*)tabBar {
@@ -238,6 +246,10 @@
     shape = [TTRoundedRectangleShape shapeWithTopLeft:0 topRight:0 bottomRight:8 bottomLeft:0];
   } else if (corner == 4) {
     shape = [TTRoundedRectangleShape shapeWithTopLeft:0 topRight:0 bottomRight:0 bottomLeft:8];
+  } else if (corner == 5) {
+    shape = [TTRoundedRectangleShape shapeWithTopLeft:8 topRight:0 bottomRight:0 bottomLeft:8];
+  } else if (corner == 6) {
+    shape = [TTRoundedRectangleShape shapeWithTopLeft:0 topRight:8 bottomRight:8 bottomLeft:0];
   } else {
     shape = [TTRectangleShape shape];
   }
@@ -281,6 +293,14 @@
 
 - (TTStyle*)tabGridTabBottomLeft:(UIControlState)state {
   return [self tabGridTab:state corner:4];
+}
+
+- (TTStyle*)tabGridTabLeft:(UIControlState)state {
+  return [self tabGridTab:state corner:5];
+}
+
+- (TTStyle*)tabGridTabRight:(UIControlState)state {
+  return [self tabGridTab:state corner:6];
 }
 
 - (TTStyle*)tabGridTabCenter:(UIControlState)state {
@@ -472,6 +492,10 @@
 
 - (UIFont*)tableTitleFont {
   return [UIFont boldSystemFontOfSize:13];
+}
+
+- (UIFont*)tableTitleValueFont {
+  return [UIFont boldSystemFontOfSize:15];
 }
 
 - (UIFont*)tableButtonFont {

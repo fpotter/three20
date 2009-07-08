@@ -5,6 +5,18 @@
 
 - (BOOL)isWhitespace;
 
-- (NSDictionary*)queryDictionaryUsingEncoding: (NSStringEncoding)encoding;
+- (BOOL)isEmptyOrWhitespace;
+
+/**
+ * Parses a URL query string into a dictionary.
+ */
+- (NSDictionary*)queryDictionaryUsingEncoding:(NSStringEncoding)encoding;
+
+- (NSString*)stringByRemovingHTMLTags;
+
+/**
+ * Loads a URL with the string using TTAppMap.
+ */
+- (void)loadAsURL;
 
 @end

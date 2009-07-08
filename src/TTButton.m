@@ -54,11 +54,11 @@ static const CGFloat kVPadding = 7;
 
 - (void)dealloc {
   [_request cancel];
-  [_request release];
-  [_title release];
-  [_imageURL release];
-  [_image release];
-  [_style release];
+  TT_RELEASE_MEMBER(_request);
+  TT_RELEASE_MEMBER(_title);
+  TT_RELEASE_MEMBER(_imageURL);
+  TT_RELEASE_MEMBER(_image);
+  TT_RELEASE_MEMBER(_style);
   [super dealloc];
 }
 
@@ -75,30 +75,27 @@ static const CGFloat kVPadding = 7;
   self.image = response.image;
   [_button setNeedsDisplay];
   
-  [_request release];
-  _request = nil;
+  TT_RELEASE_MEMBER(_request);
 }
 
 - (void)request:(TTURLRequest*)request didFailLoadWithError:(NSError*)error {
-  [_request release];
-  _request = nil;
+  TT_RELEASE_MEMBER(_request);
 }
 
 - (void)requestDidCancelLoad:(TTURLRequest*)request {
-  [_request release];
-  _request = nil;
+  TT_RELEASE_MEMBER(_request);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // public
 
-- (void)setImageURL:(NSString*)url {
-  if (self.image && _imageURL && [url isEqualToString:_imageURL])
+- (void)setImageURL:(NSString*)URL {
+  if (self.image && _imageURL && [URL isEqualToString:_imageURL])
     return;
   
   [self stopLoading];
   [_imageURL release];
-  _imageURL = [url retain];
+  _imageURL = [URL retain];
   
   if (_imageURL.length) {
     [self reload];
@@ -240,8 +237,8 @@ static const CGFloat kVPadding = 7;
 }
 
 - (void)dealloc {
-  [_content release];
-  [_font release];
+  TT_RELEASE_MEMBER(_content);
+  TT_RELEASE_MEMBER(_font);
   [super dealloc];
 }
 

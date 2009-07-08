@@ -1,4 +1,5 @@
 #import "Three20/TTGlobal.h"
+#import <objc/runtime.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -61,6 +62,10 @@ CGRect TTNavigationFrame() {
   return CGRectMake(0, 0, frame.size.width, frame.size.height - TOOLBAR_HEIGHT);
 }
 
+CGRect TTKeyboardNavigationFrame() {
+  return TTRectContract(TTNavigationFrame(), 0, KEYBOARD_HEIGHT);
+}
+
 CGRect TTToolbarNavigationFrame() {
   CGRect frame = [UIScreen mainScreen].applicationFrame;
   return CGRectMake(0, 0, frame.size.width, frame.size.height - TOOLBAR_HEIGHT*2);
@@ -89,6 +94,26 @@ void TTNetworkRequestStopped() {
   }
 }
 
+float TTOSVersion() {
+  return [[[UIDevice currentDevice] systemVersion] floatValue];
+}
+
+BOOL TTOSVersionIsAtLeast(float version) {
+  #ifdef __IPHONE_3_0
+    return 3.0 >= version;
+  #endif
+  #ifdef __IPHONE_2_2
+    return 2.2 >= version;
+  #endif
+  #ifdef __IPHONE_2_1
+    return 2.1 >= version;
+  #endif
+  #ifdef __IPHONE_2_0
+    return 2.0 >= version;
+  #endif
+  return NO;
+}
+
 NSLocale* TTCurrentLocale() {
   NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
   NSArray* languages = [defaults objectForKey:@"AppleLanguages"];
@@ -111,17 +136,17 @@ NSString* TTLocalizedString(NSString* key, NSString* comment) {
   return [bundle localizedStringForKey:key value:key table:nil];
 }
 
-BOOL TTIsBundleURL(NSString* url) {
-  if (url.length >= 9) {
-    return [url rangeOfString:@"bundle://" options:0 range:NSMakeRange(0,9)].location == 0;
+BOOL TTIsBundleURL(NSString* URL) {
+  if (URL.length >= 9) {
+    return [URL rangeOfString:@"bundle://" options:0 range:NSMakeRange(0,9)].location == 0;
   } else {
     return NO;
   }
 }
 
-BOOL TTIsDocumentsURL(NSString* url) {
-  if (url.length >= 12) {
-    return [url rangeOfString:@"documents://" options:0 range:NSMakeRange(0,12)].location == 0;
+BOOL TTIsDocumentsURL(NSString* URL) {
+  if (URL.length >= 12) {
+    return [URL rangeOfString:@"documents://" options:0 range:NSMakeRange(0,12)].location == 0;
   } else {
     return NO;
   }
@@ -139,4 +164,10 @@ NSString* TTPathForDocumentsResource(NSString* relativePath) {
     documentsPath = [[dirs objectAtIndex:0] retain];
   }
   return [documentsPath stringByAppendingPathComponent:relativePath];
+}
+
+void TTSwizzle(Class cls, SEL originalSel, SEL newSel) {
+  Method originalMethod = class_getInstanceMethod(cls, originalSel);
+  Method newMethod = class_getInstanceMethod(cls, newSel);
+  method_exchangeImplementations(originalMethod, newMethod);
 }

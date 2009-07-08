@@ -29,8 +29,8 @@
 
 - (void)shareAction {
   UIActionSheet* sheet = [[[UIActionSheet alloc] initWithTitle:@"" delegate:self
-    cancelButtonTitle:NSLocalizedString(@"Cancel", @"") destructiveButtonTitle:nil
-    otherButtonTitles:NSLocalizedString(@"Open in Safari", @""), nil] autorelease];
+    cancelButtonTitle:TTLocalizedString(@"Cancel", @"") destructiveButtonTitle:nil
+    otherButtonTitles:TTLocalizedString(@"Open in Safari", @""), nil] autorelease];
   [sheet showInView:self.view];
 }
 
@@ -52,8 +52,15 @@
 }
 
 - (void)dealloc {
-  [_headerView release];
+  TT_RELEASE_MEMBER(_headerView);
   [super dealloc];
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// URLs
+
+- (void)showURL:(NSString*)URL {
+  [self openURL:[NSURL URLWithString:URL]];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -105,25 +112,16 @@
   [self.view addSubview:_toolbar];
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// TTViewController
-
-- (void)unloadView {
-  [super unloadView];
-  [_webView release];
-  _webView = nil;
-  [_toolbar release];
-  _toolbar = nil;
-  [_backButton release];
-  _backButton = nil;
-  [_forwardButton release];
-  _forwardButton = nil;
-  [_refreshButton release];
-  _refreshButton = nil;
-  [_stopButton release];
-  _stopButton = nil;
-  [_activityItem release];
-  _activityItem = nil;
+- (void)viewDidUnload {
+  [super viewDidUnload];
+  _webView.delegate = nil;
+  TT_RELEASE_MEMBER(_webView);
+  TT_RELEASE_MEMBER(_toolbar);
+  TT_RELEASE_MEMBER(_backButton);
+  TT_RELEASE_MEMBER(_forwardButton);
+  TT_RELEASE_MEMBER(_refreshButton);
+  TT_RELEASE_MEMBER(_stopButton);
+  TT_RELEASE_MEMBER(_activityItem);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -135,7 +133,7 @@
 }
 
 - (void)webViewDidStartLoad:(UIWebView*)webView {
-  self.title = NSLocalizedString(@"Loading...", @"");
+  self.title = TTLocalizedString(@"Loading...", @"");
   self.navigationItem.rightBarButtonItem = _activityItem;
   [_toolbar replaceItemWithTag:3 withItem:_stopButton];
   _backButton.enabled = [_webView canGoBack];
@@ -165,8 +163,13 @@
  
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-- (NSURL*)url {
+- (NSURL*)URL {
   return _webView.request.URL;
+}
+
+- (void)openRequest:(NSURLRequest*)request {
+  self.view;
+  [_webView loadRequest:request];
 }
 
 - (void)setHeaderView:(UIView*)headerView {
@@ -194,10 +197,9 @@
   }
 }
 
-- (void)openURL:(NSURL*)url {
-  self.view;
-  NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:url];
-  [_webView loadRequest:request];
+- (void)openURL:(NSURL*)URL {
+  NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:URL];
+  [self openRequest:request];
 }
 
 @end
