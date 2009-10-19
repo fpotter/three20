@@ -1234,6 +1234,11 @@ static const CGFloat kDefaultMessageImageHeight = 34;
     }
   }
   
+  if ([TTTableControlCell shouldSizeControlToFit:object]) {
+    // We'll inset this control in layout, so we need to account for that in our height
+    height += ((kSpacing / 2) * 2);
+  }
+
   if (height < TT_ROW_HEIGHT) {
     return TT_ROW_HEIGHT;
   } else {
@@ -1264,7 +1269,7 @@ static const CGFloat kDefaultMessageImageHeight = 34;
   [super layoutSubviews];
   
   if ([TTTableControlCell shouldSizeControlToFit:_control]) {
-    _control.frame = CGRectInset(self.contentView.bounds, 2, kSpacing/2);
+    _control.frame = CGRectMake(2, kSpacing / 2, self.contentView.width - 4, self.height - 1 - (2 * (kSpacing / 2)));
   } else {
     CGFloat minX = kControlPadding;
     CGFloat contentWidth = self.contentView.width - kControlPadding;
@@ -1334,7 +1339,14 @@ static const CGFloat kDefaultMessageImageHeight = 34;
 // TTTableViewCell class public
 
 + (CGFloat)tableView:(UITableView*)tableView rowHeightForObject:(id)object {
-  return TT_ROW_HEIGHT;
+  if ([object isKindOfClass:[UIView class]]) {
+    return ((UIView *)object).height;
+  } else if ([object isKindOfClass:[TTTableViewItem class]]) {
+    TTTableViewItem *item = object;
+    return item.view.height;
+  } else {
+    return TT_ROW_HEIGHT;
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1361,7 +1373,9 @@ static const CGFloat kDefaultMessageImageHeight = 34;
 
 - (void)layoutSubviews {
   [super layoutSubviews];
-  _view.frame = self.contentView.bounds;
+  // Take our width from contentView (since it resizes with accessories), but
+  // take our height from the cell (as it includes the separator height)
+  _view.frame = CGRectMake(0, 0, self.contentView.width, self.height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
