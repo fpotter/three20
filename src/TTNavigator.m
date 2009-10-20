@@ -469,6 +469,7 @@
   if (object) {
     UIViewController* controller = object;
     controller.originalNavigatorURL = URL;
+    controller.originalQuery = query;
     
     if (_delayCount) {
       if (!_delayedControllers) {
@@ -552,7 +553,8 @@
   BOOL passedContainer = NO;
   for (NSDictionary* state in path) {
     NSString* URL = [state objectForKey:@"__navigatorURL__"];
-    controller = [self openURL:URL parent:nil query:nil state:state animated:NO transition:0
+    NSDictionary* query = [state objectForKey:@"__query__"];
+    controller = [self openURL:URL parent:nil query:query state:state animated:NO transition:0
                       withDelay:NO];
     
     // Stop if we reach a model view controller whose model could not be synchronously loaded.
@@ -580,10 +582,17 @@
 
 - (void)persistController:(UIViewController*)controller path:(NSMutableArray*)path {
   NSString* URL = controller.navigatorURL;
+
   if (URL) {
     // Let the controller persists its own arbitrary state
     NSMutableDictionary* state = [NSMutableDictionary dictionaryWithObject:URL  
                                                       forKey:@"__navigatorURL__"];
+    
+    NSDictionary *query = controller.originalQuery;
+    if (query) {           
+      [state setObject:query forKey:@"__query__"];
+    }
+    
     if ([controller persistView:state]) {
       [path addObject:state];
     }

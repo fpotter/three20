@@ -4,6 +4,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 static NSMutableDictionary* gNavigatorURLs = nil;
+static NSMutableDictionary* gQueryDictionaries = nil;
 static NSMutableDictionary* gSuperControllers = nil;
 static NSMutableDictionary* gPopupViewControllers = nil;
 
@@ -57,6 +58,7 @@ static NSMutableDictionary* gPopupViewControllers = nil;
   if (URL) {
     [[TTNavigator navigator].URLMap removeObjectForURL:URL];
     self.originalNavigatorURL = nil;
+    self.originalQuery = nil;
   }
 
   self.superController = nil;
@@ -91,6 +93,23 @@ static NSMutableDictionary* gPopupViewControllers = nil;
     [gNavigatorURLs setObject:URL forKey:key];
   } else {
     [gNavigatorURLs removeObjectForKey:key];
+  }
+}
+
+- (NSDictionary *)originalQuery {
+  NSString* key = [NSString stringWithFormat:@"%d", self.hash];
+  return [gQueryDictionaries objectForKey:key];  
+}
+
+- (void)setOriginalQuery:(NSDictionary *)query {
+  NSString* key = [NSString stringWithFormat:@"%d", self.hash];
+  if (query) {
+    if (!gQueryDictionaries) {
+      gQueryDictionaries = [[NSMutableDictionary alloc] init];
+    }
+    [gQueryDictionaries setObject:query forKey:key];
+  } else {
+    [gQueryDictionaries removeObjectForKey:key];
   }
 }
 

@@ -24,6 +24,14 @@
 @property(nonatomic,copy) NSString* originalNavigatorURL;
 
 /**
+ * The query dictionary that was used to load this controller through TTNavigator.
+ * 
+ * As with originalNavigatorURL, this value is automatically set by TTNavigator
+ * when the controller is created, and should never be changed.
+ */
+@property(nonatomic,assign) NSDictionary* originalQuery;
+
+/**
  * Determines whether a controller is primarily a container of other controllers.
  */
 @property(nonatomic,readonly) BOOL canContainControllers;
