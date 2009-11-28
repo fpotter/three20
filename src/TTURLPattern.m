@@ -107,32 +107,32 @@ static TTURLArgumentType TTURLArgumentTypeForProperty(Class cls, NSString* prope
         return @"";
       }
       case TTURLArgumentTypeInteger: {
-        int val;
+        int val = 0;
         [invocation getReturnValue:&val];
         return [NSString stringWithFormat:@"%d", val];
       }
       case TTURLArgumentTypeLongLong: {
-        long long val;
+        long long val = 0;
         [invocation getReturnValue:&val];
         return [NSString stringWithFormat:@"%lld", val];
       }
       case TTURLArgumentTypeFloat: {
-        float val;
+        float val = 0.0;
         [invocation getReturnValue:&val];
         return [NSString stringWithFormat:@"%f", val];
       }
       case TTURLArgumentTypeDouble: {
-        double val;
+        double val = 0.0;
         [invocation getReturnValue:&val];
         return [NSString stringWithFormat:@"%f", val];
       }
       case TTURLArgumentTypeBool: {
-        BOOL val;
+        BOOL val = NO;
         [invocation getReturnValue:&val];
         return [NSString stringWithFormat:@"%d", val];
       }
       default: {
-        id val;
+        id val = nil;
         [invocation getReturnValue:&val];
         return [NSString stringWithFormat:@"%@", val];
       }
