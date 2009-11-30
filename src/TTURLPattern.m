@@ -134,7 +134,10 @@ static TTURLArgumentType TTURLArgumentTypeForProperty(Class cls, NSString* prope
       default: {
         id val = nil;
         [invocation getReturnValue:&val];
-        return [NSString stringWithFormat:@"%@", val];
+        // It's important to URL encode the result.  We'll parse this
+        // later with NSURL and it'll choke on invalid URLs.
+        return [[NSString stringWithFormat:@"%@", val] 
+                stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
       }
     }
     return @"";
