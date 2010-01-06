@@ -1092,7 +1092,14 @@ static const CGFloat kDefaultMessageImageHeight = 34;
 - (void)didMoveToSuperview {
   [super didMoveToSuperview];
   if (self.superview) {
-    _label.backgroundColor = self.backgroundColor;
+    UITableView *tableView = (UITableView *)self.superview;
+    
+    if (tableView.style == UITableViewStylePlain) {
+      _label.backgroundColor = self.backgroundColor;
+    } else {
+      // We don't want to obscure the rounded corners.
+      _label.backgroundColor = [UIColor clearColor];
+    }
   }
 }
 
@@ -1137,6 +1144,7 @@ static const CGFloat kDefaultMessageImageHeight = 34;
   if (self = [super initWithStyle:style reuseIdentifier:identifier]) {
     _label = [[TTStyledTextLabel alloc] init];
     _label.contentMode = UIViewContentModeLeft;
+    _label.backgroundColor = [UIColor clearColor];
     [self.contentView addSubview:_label];
 
     self.selectionStyle = UITableViewCellSelectionStyleNone;
