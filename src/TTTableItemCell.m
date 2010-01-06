@@ -1328,6 +1328,8 @@ static const CGFloat kDefaultMessageImageHeight = 34;
     
     _control.backgroundColor = [UIColor clearColor];
     self.textLabel.text = _item.caption;
+    self.textLabel.font = TTSTYLEVAR(tableFont);
+    self.textLabel.textColor = TTSTYLEVAR(textColor);
     
     if (_control) {
       [self.contentView addSubview:_control];
